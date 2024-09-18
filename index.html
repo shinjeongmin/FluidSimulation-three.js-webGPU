@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>three.js project</title>
+    <style>
+      body,
+      html {
+        height: 100%;
+      }      
+      canvas {
+        height: 100%;
+        width: 100%;
+        outline: none;
+
+        background: rgb(34, 193, 195);
+        background: linear-gradient(
+          0deg,
+          rgb(8, 163, 166) 0%,
+          rgba(79, 166, 167, 0.849) 8%,
+          rgba(61, 79, 94, 0.885) 40%,
+          rgb(17, 19, 23)
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <script type="module" src="/src/test-scene.ts"></script>
+  </body>
+</html>
