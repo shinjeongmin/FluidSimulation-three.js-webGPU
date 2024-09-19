@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { initScene } from './render/render-setting'
 import { setCameraControl } from './controler/camera-controls'
 import { resizeRendererToDisplaySize } from './render/responsiveness'
+import { addLights } from './light'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -9,12 +10,15 @@ const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clien
 camera.position.set(0,0,5)
 const { cameraControls } = setCameraControl(camera, canvas)
 
+addLights(scene)
+
 //#region object 
 const cube = new THREE.Mesh(
   new THREE.BoxGeometry(1,1,1),
-  new THREE.MeshBasicMaterial({color: 'red'})
+  new THREE.MeshStandardMaterial({color: 'red'})
 )
 scene.add(cube)
+console.log(cube.position)
 //#endregion
 
 //#region animate
