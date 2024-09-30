@@ -4,8 +4,8 @@ import { setCameraControl } from './controler/camera-controls'
 import { resizeRendererToDisplaySize } from './render/responsiveness'
 import { addLights } from './light'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
-// import vertexShader from './shader/vertexshader.glsl'
-// import fragmentShader from './shader/fragmentshader.glsl'
+import vertexShader from './shader/vertexshader.glsl'
+import fragmentShader from './shader/fragmentshader.glsl'
 // import simFragment from './shader/simulationfragment.glsl'
 
 const CANVAS_ID = 'scene'
@@ -22,6 +22,15 @@ const cube = new THREE.Points(
   new THREE.PointsMaterial({color:'red', size: 0.01})
 )
 scene.add(cube)
+
+const points = new THREE.Points(
+  new THREE.PlaneGeometry(2, 2, 128, 128),
+  new THREE.ShaderMaterial({
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader
+  })
+)
+console.log(vertexShader)
 //#endregion
 
 //#region animate
