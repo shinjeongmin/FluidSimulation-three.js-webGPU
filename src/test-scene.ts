@@ -3,6 +3,10 @@ import { initScene } from './render/render-setting'
 import { setCameraControl } from './controler/camera-controls'
 import { resizeRendererToDisplaySize } from './render/responsiveness'
 import { addLights } from './light'
+import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
+// import vertexShader from './shader/vertexshader.glsl'
+// import fragmentShader from './shader/fragmentshader.glsl'
+// import simFragment from './shader/simulationfragment.glsl'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -13,12 +17,11 @@ const { cameraControls } = setCameraControl(camera, canvas)
 addLights(scene)
 
 //#region object 
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1,1,1),
-  new THREE.MeshStandardMaterial({color: 'red'})
+const cube = new THREE.Points(
+  new THREE.PlaneGeometry(2, 2, 128, 128),
+  new THREE.PointsMaterial({color:'red', size: 0.01})
 )
 scene.add(cube)
-console.log(cube.position)
 //#endregion
 
 //#region animate
@@ -30,10 +33,6 @@ function animate() {
     camera.aspect = canvas.clientWidth / canvas.clientHeight
     camera.updateProjectionMatrix()
   }
-
-  // 박스 회전
-  // cube.rotation.x += 0.01;
-  // cube.rotation.y += 0.01;
 
   renderer.render(scene, camera);
 }
