@@ -11,17 +11,12 @@ import fragmentShader from './shader/fragmentshader.glsl'
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
 const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 1000)
-camera.position.set(0,0,5)
+camera.position.set(0,0,3)
 const { cameraControls } = setCameraControl(camera, canvas)
 
 addLights(scene)
 
 //#region object 
-const cube = new THREE.Points(
-  new THREE.PlaneGeometry(2, 2, 128, 128),
-  new THREE.PointsMaterial({color:'red', size: 0.01})
-)
-scene.add(cube)
 
 const points = new THREE.Points(
   new THREE.PlaneGeometry(2, 2, 128, 128),
@@ -30,7 +25,7 @@ const points = new THREE.Points(
     fragmentShader: fragmentShader
   })
 )
-console.log(vertexShader)
+scene.add(points)
 //#endregion
 
 //#region animate
