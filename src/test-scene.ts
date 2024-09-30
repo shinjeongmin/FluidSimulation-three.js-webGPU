@@ -6,7 +6,7 @@ import { addLights } from './light'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import vertexShader from './shader/vertexshader.glsl'
 import fragmentShader from './shader/fragmentshader.glsl'
-// import simFragment from './shader/simulationfragment.glsl'
+import simFragment from './shader/simulationfragment.glsl'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -17,15 +17,26 @@ const { cameraControls } = setCameraControl(camera, canvas)
 addLights(scene)
 
 //#region object 
-
+const material = new THREE.ShaderMaterial({
+  uniforms:{
+    uTexture: {value: null},
+  },
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader
+})
 const points = new THREE.Points(
   new THREE.PlaneGeometry(2, 2, 128, 128),
-  new THREE.ShaderMaterial({
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader
-  })
+  material
 )
 scene.add(points)
+//#endregion
+
+//#region gpu compute renderer
+const gpuCompute = new GPUComputationRenderer(canvas.clientWidth,  canvas.clientHeight, renderer)
+const dtPosition = gpuCompute.createTexture();
+const positionVariable = gpuCompute.addVariable('uCurrentPosition', simFragment, dtPosition )
+gpuCompute.setVariableDependencies(positionVariable, [positionVariable])
+gpuCompute.init()
 //#endregion
 
 //#region animate
@@ -37,6 +48,9 @@ function animate() {
     camera.aspect = canvas.clientWidth / canvas.clientHeight
     camera.updateProjectionMatrix()
   }
+
+  gpuCompute.compute();
+  material.uniforms.uTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
 
   renderer.render(scene, camera);
 }
