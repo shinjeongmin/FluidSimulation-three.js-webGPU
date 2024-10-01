@@ -6,7 +6,7 @@ import { addLights } from './light'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import vertexShader from './shader/vertexshader.glsl'
 import fragmentShader from './shader/fragmentshader.glsl'
-import simFragment from './shader/simulationfragment.glsl'
+import computefragment from './shader/computefragment.glsl'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -34,7 +34,7 @@ scene.add(points)
 //#region gpu compute renderer
 const gpuCompute = new GPUComputationRenderer(canvas.clientWidth,  canvas.clientHeight, renderer)
 const dtPosition = gpuCompute.createTexture();
-const positionVariable = gpuCompute.addVariable('uCurrentPosition', simFragment, dtPosition )
+const positionVariable = gpuCompute.addVariable('uCurrentPosition', computefragment, dtPosition )
 gpuCompute.setVariableDependencies(positionVariable, [positionVariable])
 gpuCompute.init()
 //#endregion
@@ -51,6 +51,7 @@ function animate() {
 
   gpuCompute.compute();
   material.uniforms.uTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+  console.log(points.position)
 
   renderer.render(scene, camera);
 }
