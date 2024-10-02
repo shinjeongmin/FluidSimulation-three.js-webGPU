@@ -11,6 +11,8 @@ import { vec3 } from 'gl-matrix'
 import { Particle } from './particle'
 import * as glmatToThree from './converter/gl-materix-to-three'
 import * as drawDebugLine from './draw-debug-line'
+import * as debugGui from './gui/debug-gui'
+import {SPH as _SPH} from './sph'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -19,39 +21,19 @@ camera.position.set(0,0,10)
 const { cameraControls } = setCameraControl(camera, canvas)
 addLights(scene)
 
-//#region SPH variable - general
-let showSpheres: boolean = true;
-let numToSpawn: vec3 = [10,10,10];
-let totalParticles: number = numToSpawn[0] * numToSpawn[1] * numToSpawn[2];
-let spawnCenter: vec3 = [0,0,0];
-let particleRadius: number = 0.1;
-//#endregion
-
-//#region SPH variable - particle rendering
-let particleMesh: THREE.Mesh = new THREE.Mesh();
-let particleRenderSize: number = 8;
-let material: THREE.Material;
-//#endregion
-
-//#region SPH variable - compute
-const gpuCompute = new GPUComputationRenderer(canvas.clientWidth,  canvas.clientHeight, renderer)
-const dtPosition = gpuCompute.createTexture();
-const positionVariable = gpuCompute.addVariable('uCurrentPosition', computefragment, dtPosition )
-gpuCompute.setVariableDependencies(positionVariable, [positionVariable])
-gpuCompute.init()
-let particles: Particle[];
-//#endregion
+const SPH = new _SPH(canvas, renderer);
+SPH.setShader(computefragment);
 
 function initialize(){
   // 파티클 인스턴스 생성
-  particleMesh.geometry = new THREE.SphereGeometry(particleRadius);
-  particleMesh.material = new THREE.MeshPhongMaterial({color: 'blue'});
-  particleMesh = new THREE.InstancedMesh(particleMesh.geometry, particleMesh.material, 
+  SPH.particleMesh.geometry = new THREE.SphereGeometry(SPH.particleRadius);
+  SPH.particleMesh.material = new THREE.MeshPhongMaterial({color: 'blue'});
+  SPH.particleMesh = new THREE.InstancedMesh(SPH.particleMesh.geometry, SPH.particleMesh.material, 
     1000);
-  scene.add(particleMesh)
+  scene.add(SPH.particleMesh)
 
-  spawnParticlesInBox(particleMesh as THREE.InstancedMesh, glmatToThree.vec3ToVector3(numToSpawn),
-    glmatToThree.vec3ToVector3(spawnCenter), particleRadius, 0)
+  spawnParticlesInBox(SPH.particleMesh as THREE.InstancedMesh, SPH.numToSpawn,
+    SPH.spawnCenter, SPH.particleRadius, 0)
 }
 
 function spawnParticlesInBox(
@@ -108,12 +90,9 @@ function animate() {
   }
 
   //#region update
-  if(showSpheres){
-
-  }
   //#endregion
 
-  gpuCompute.compute();
+  SPH.gpuCompute.compute();
 
   renderer.render(scene, camera);
 }
@@ -121,6 +100,8 @@ function animate() {
 
 //#region function main stream
 initialize();
+debugGui.init();
+debugGui.setShowSphere('showSpheres', SPH.showSpheres, SPH);
 drawDebugLine.drawBoundary(scene);
 animate();
 //#endregion
