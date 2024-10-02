@@ -9,6 +9,8 @@ import fragmentShader from './shader/fragmentshader.glsl'
 import computefragment from './shader/computefragment.glsl'
 import { vec3 } from 'gl-matrix'
 import { Particle } from './particle'
+import * as glmatToThree from './converter/gl-materix-to-three'
+import * as drawDebugLine from './draw-debug-line'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
@@ -38,20 +40,18 @@ const positionVariable = gpuCompute.addVariable('uCurrentPosition', computefragm
 gpuCompute.setVariableDependencies(positionVariable, [positionVariable])
 gpuCompute.init()
 let particles: Particle[];
-let _argsBuffer;
-let _particlesBuffer;
 //#endregion
 
 function initialize(){
   // 파티클 인스턴스 생성
-  particleMesh.geometry = new THREE.SphereGeometry(0.1);
+  particleMesh.geometry = new THREE.SphereGeometry(particleRadius);
   particleMesh.material = new THREE.MeshPhongMaterial({color: 'blue'});
   particleMesh = new THREE.InstancedMesh(particleMesh.geometry, particleMesh.material, 
     1000);
   scene.add(particleMesh)
 
-  spawnParticlesInBox(particleMesh as THREE.InstancedMesh, new THREE.Vector3(10,10,10),new THREE.Vector3(0,0,0),
-  0.1, 0)
+  spawnParticlesInBox(particleMesh as THREE.InstancedMesh, glmatToThree.vec3ToVector3(numToSpawn),
+    glmatToThree.vec3ToVector3(spawnCenter), particleRadius, 0)
 }
 
 function spawnParticlesInBox(
@@ -97,7 +97,6 @@ function spawnParticlesInBox(
   particleMesh.instanceMatrix.needsUpdate = true;
 }
 
-
 //#region animate
 function animate() {
   requestAnimationFrame(animate);
@@ -122,5 +121,6 @@ function animate() {
 
 //#region function main stream
 initialize();
+drawDebugLine.drawBoundary(scene);
 animate();
 //#endregion
