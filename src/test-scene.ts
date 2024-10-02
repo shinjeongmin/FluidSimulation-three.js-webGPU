@@ -50,7 +50,7 @@ function animate() {
 
   gpuCompute.compute();
   material.uniforms.uTexture.value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
-  console.log(points.position)
+
 
   renderer.render(scene, camera);
 }

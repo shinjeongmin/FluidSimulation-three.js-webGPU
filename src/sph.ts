@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
+import { GPUComputationRenderer, Variable } from 'three/examples/jsm/misc/GPUComputationRenderer';
 import { Particle } from './particle';
 
 export class SPH{
@@ -19,8 +19,8 @@ export class SPH{
 
   //#region SPH variable - compute
   public gpuCompute: GPUComputationRenderer;
-  public dtPosition: THREE.DataTexture;
-  public positionVariable: any;
+  public textureData: THREE.DataTexture;
+  public textureVariable: Variable;
   public particles: Particle[];
   //#endregion
 
@@ -48,9 +48,10 @@ export class SPH{
     console.log(this.showSpheres)
   }
   public setShader(computefragment: string){
-    this.dtPosition = this.gpuCompute.createTexture();
-    this.positionVariable = this.gpuCompute.addVariable('uCurrentPosition', computefragment, this.dtPosition);
-    this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable]);
+    this.textureData = this.gpuCompute.createTexture();
+    this.textureData.image.data;
+    this.textureVariable = this.gpuCompute.addVariable('textureData', computefragment, this.textureData);
+    this.gpuCompute.setVariableDependencies(this.textureVariable, [this.textureVariable]);
 
     this.gpuCompute.init();
   }
