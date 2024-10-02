@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix';
 import * as THREE from 'three'
 
-class Particle{
+export class Particle{
   pressure: number;
   density: number;
   currentForce: vec3;
