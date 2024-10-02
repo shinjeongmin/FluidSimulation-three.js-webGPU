@@ -4,9 +4,9 @@ import { setCameraControl } from './controler/camera-controls'
 import { resizeRendererToDisplaySize } from './render/responsiveness'
 import { addLights } from './light'
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
-import vertexShader from './shader/vertexshader.glsl'
-import fragmentShader from './shader/fragmentshader.glsl'
-import computefragment from './shader/computefragment.glsl'
+import vertexShader from './shader/test/vertexshader.glsl'
+import fragmentShader from './shader/test/fragmentshader.glsl'
+import computefragment from './shader/test/computefragment.glsl'
 
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
