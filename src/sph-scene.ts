@@ -89,9 +89,6 @@ function animate() {
     camera.updateProjectionMatrix()
   }
 
-  //#region update
-  //#endregion
-
   SPH.gpuCompute.compute();
 
   renderer.render(scene, camera);
@@ -102,6 +99,6 @@ function animate() {
 initialize();
 debugGui.init();
 debugGui.setShowSphere('showSpheres', SPH.showSpheres, SPH);
-drawDebugLine.drawBoundary(scene);
+drawDebugLine.drawBoundary(scene, new THREE.Vector3(0,0,0), 1);
 animate();
 //#endregion
