@@ -33,6 +33,15 @@ export class SPH{
   // let particles: Particle[];
   //#endregion
 
+  //#region SPH variable - fluid constants
+  public boundDamping: number = -0.3;
+  public viscosity: number = -0.003;
+  public particleMass: number = 1;
+  public gasConstant: number = 2;
+  public restingDensity: number = 1;
+  public timestep: number = 0.007;
+  //#endregion
+
   constructor(private canvas: HTMLElement, private renderer: THREE.WebGLRenderer) {
     this.particleMesh = new THREE.Mesh();
 
