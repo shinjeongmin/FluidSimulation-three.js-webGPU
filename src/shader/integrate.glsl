@@ -35,6 +35,8 @@ void main() {
 
     Particle particle = _particles[id];
 
+    particle.currentForce = vec3(0, -9.81 * particleMass, 0);
+
     vec3 vel = particle.velocity + ((particle.currentForce / particleMass) * timestep);
     vec3 newPosition = particle.position + vel * timestep;
 
