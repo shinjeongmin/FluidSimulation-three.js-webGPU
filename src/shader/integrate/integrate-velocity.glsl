@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 uniform float timestep;
 uniform float particleMass;
@@ -7,8 +7,10 @@ uniform float radius;
 uniform float boundDamping;
 uniform int particleLength;
 
-// uniform sampler2D velocityTexture;  // 이전 속도를 입력으로 받음
-// uniform sampler2D forceTexture;     // 힘을 입력으로 받음
+// uniform sampler2D positionTexture;
+// uniform sampler2D velocityTexture;
+// uniform sampler2D forceTexture;
+// uniform sampler2D densityPressureTexture;
 
 void main() {
     int id = int(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑

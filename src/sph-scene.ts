@@ -112,7 +112,7 @@ function animate() {
   //#region GPU computation
   SPH.gpuCompute.compute();
   if(isSpacePressed) 
-    readTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.velocityVariable));
+    readTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.forceVariable));
   
   updateParticlePosition(SPH.particleMesh as THREE.InstancedMesh, 
     getTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.positionVariable)))

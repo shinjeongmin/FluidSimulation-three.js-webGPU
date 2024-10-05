@@ -1,26 +1,36 @@
-precision mediump float;
+precision highp float;
 
-uniform float timestep;
+uniform int particleLength;
 uniform float particleMass;
+uniform float viscosity;
+uniform float gasConstant;
+uniform float restDensity;
+uniform float boundDamping;
+uniform float pi;
 uniform vec3 boxSize;
 uniform float radius;
-uniform float boundDamping;
-uniform int particleLength;
+uniform float radius2;
+uniform float radius3;
+uniform float radius4;
+uniform float radius5;
+uniform float timestep;
 
-// 첫 compute shader에서는 중복된 uniform
-// uniform sampler2D velocityTexture;  // 속도를 입력으로 받음
-// uniform sampler2D positionTexture;  // 이전 위치를 입력으로 받음
+// uniform sampler2D positionTexture;
+// uniform sampler2D velocityTexture;
+// uniform sampler2D forceTexture;
+// uniform sampler2D densityPressureTexture;
 
 void main() {
     int id = int(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
 
     if (id >= particleLength) {
         gl_FragColor = vec4(0.0);  // 범위 밖일 경우 아무런 작업도 하지 않음
+        // id = vec4(0.0);
         return;
     }
 
-    vec3 position = texture2D(positionTexture, vec2(gl_FragCoord.x / resolution.x)).xyz;
-    vec3 velocity = texture2D(velocityTexture, vec2(gl_FragCoord.x / resolution.x)).xyz;
+    vec3 position = texture2D(positionTexture, vec2(gl_FragCoord.x / float(particleLength))).xyz;
+    vec3 velocity = texture2D(velocityTexture, vec2(gl_FragCoord.x / float(particleLength))).xyz;
 
     vec3 newPosition = position + velocity * timestep;
 

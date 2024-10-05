@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 import { GPUComputationRenderer, Variable } from 'three/examples/jsm/misc/GPUComputationRenderer';
 import { Particle } from './particle';
-import computeIntegrateForce from './shader/integrate/integrate-force.glsl'
+import computeForce from './shader/density-pressure/compute-force.glsl'
 import computeIntegratePosition from './shader/integrate/integrate-position.glsl'
 import computeIntegrateVelocity from './shader/integrate/integrate-velocity.glsl'
+import computeDensityPressure from './shader/density-pressure/density-pressure.glsl'
 
 export class SPH{
   //#region SPH variable - general
@@ -34,6 +35,8 @@ export class SPH{
   public velocityVariable: Variable;
   public initialForce: THREE.Texture;
   public forceVariable: Variable;
+  public initialDenstPress: THREE.Texture;
+  public denstPressVariable: Variable;
   //#endregion
 
   //#region SPH variable - compute
@@ -67,63 +70,98 @@ export class SPH{
       this.particleMesh.visible = true;
     else
       this.particleMesh.visible = false;
-    console.log(this.showSpheres)
   }
   public setShader(){
     this.initialPosition = this.gpuCompute.createTexture();
     this.initialVelocity = this.gpuCompute.createTexture();
     this.initialForce = this.gpuCompute.createTexture();
     this.initParticlePosition();
+    this.initialDenstPress = this.gpuCompute.createTexture();
 
     this.positionVariable = this.gpuCompute.addVariable('positionTexture', computeIntegratePosition, this.initialPosition);
     this.velocityVariable = this.gpuCompute.addVariable('velocityTexture', computeIntegrateVelocity, this.initialVelocity);
-    this.forceVariable = this.gpuCompute.addVariable('forceTexture', computeIntegrateForce, this.initialForce);
-
+    this.forceVariable = this.gpuCompute.addVariable('forceTexture', computeForce, this.initialForce);
+    this.denstPressVariable = this.gpuCompute.addVariable('densityPressureTexture', computeDensityPressure, this.initialDenstPress);
+    
     this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable]);
     this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable, this.forceVariable]);
-    this.gpuCompute.setVariableDependencies(this.forceVariable, [this.forceVariable]);
+    this.gpuCompute.setVariableDependencies(this.forceVariable, [this.positionVariable, this.velocityVariable, this.forceVariable, this.denstPressVariable]);
+    this.gpuCompute.setVariableDependencies(this.denstPressVariable, [this.positionVariable]);
 
     //#region position uniform
     this.positionVariable.material.uniforms.particleLength = { value: this.totalParticles };
-    this.positionVariable.material.uniforms.particleMass = { value: 1.0 };
-    // this.positionVariable.material.uniforms.viscosity = { value: 0.01 };
-    // this.positionVariable.material.uniforms.gasConstant = { value: 1.4 };
-    // this.positionVariable.material.uniforms.restDensity = { value: 1000.0 };
+    this.positionVariable.material.uniforms.particleMass = { value: this.particleMass };
+    this.positionVariable.material.uniforms.viscosity = { value: this.viscosity };
+    this.positionVariable.material.uniforms.gasConstant = { value: this.gasConstant };
+    this.positionVariable.material.uniforms.restDensity = { value: this.restingDensity };
     this.positionVariable.material.uniforms.boundDamping = { value: this.boundDamping };
-    // this.positionVariable.material.uniforms.pi = { value: Math.PI };
+    this.positionVariable.material.uniforms.pi = { value: Math.PI };
     this.positionVariable.material.uniforms.boxSize = { value: this.boxSize };
 
     this.positionVariable.material.uniforms.radius = { value: this.particleRadius };
-    // this.positionVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
-    // this.positionVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
-    // this.positionVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
-    // this.positionVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
+    this.positionVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
+    this.positionVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
+    this.positionVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
+    this.positionVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
     
     this.positionVariable.material.uniforms.timestep = { value: this.timestep };
     //#endregion
 
     //#region velocity uniform
-    this.velocityVariable.material.uniforms.particleMass = { value: 1.0 };
     this.velocityVariable.material.uniforms.particleLength = { value: this.totalParticles };
-    // this.velocityVariable.material.uniforms.viscosity = { value: 0.01 };
-    // this.velocityVariable.material.uniforms.gasConstant = { value: 1.4 };
-    // this.velocityVariable.material.uniforms.restDensity = { value: 1000.0 };
+    this.velocityVariable.material.uniforms.particleMass = { value: this.particleMass };
+    this.velocityVariable.material.uniforms.viscosity = { value: this.viscosity };
+    this.velocityVariable.material.uniforms.gasConstant = { value: this.gasConstant };
+    this.velocityVariable.material.uniforms.restDensity = { value: this.restingDensity };
     this.velocityVariable.material.uniforms.boundDamping = { value: this.boundDamping };
-    // this.velocityVariable.material.uniforms.pi = { value: Math.PI };
+    this.velocityVariable.material.uniforms.pi = { value: Math.PI };
     this.velocityVariable.material.uniforms.boxSize = { value: this.boxSize };
     
     this.velocityVariable.material.uniforms.radius = { value: this.particleRadius };
-    // this.velocityVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
-    // this.velocityVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
-    // this.velocityVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
-    // this.velocityVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
+    this.velocityVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
+    this.velocityVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
+    this.velocityVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
+    this.velocityVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
     
     this.velocityVariable.material.uniforms.timestep = { value: this.timestep };
     //#endregion
 
     //#region force uniform
-    this.forceVariable.material.uniforms.particleMass = { value: 1.0 };
     this.forceVariable.material.uniforms.particleLength = { value: this.totalParticles };
+    this.forceVariable.material.uniforms.particleMass = { value: this.particleMass };
+    this.forceVariable.material.uniforms.viscosity = { value: this.viscosity };
+    this.forceVariable.material.uniforms.gasConstant = { value: this.gasConstant };
+    this.forceVariable.material.uniforms.restDensity = { value: this.restingDensity };
+    this.forceVariable.material.uniforms.boundDamping = { value: this.boundDamping };
+    this.forceVariable.material.uniforms.pi = { value: Math.PI };
+    this.forceVariable.material.uniforms.boxSize = { value: this.boxSize };
+    
+    this.forceVariable.material.uniforms.radius = { value: this.particleRadius };
+    this.forceVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
+    this.forceVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
+    this.forceVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
+    this.forceVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
+    
+    this.forceVariable.material.uniforms.timestep = { value: this.timestep };
+    //#endregion
+
+    //#region density & pressure uniform
+    this.denstPressVariable.material.uniforms.particleLength = { value: this.totalParticles };
+    this.denstPressVariable.material.uniforms.particleMass = { value: this.particleMass };
+    this.denstPressVariable.material.uniforms.viscosity = { value: this.viscosity };
+    this.denstPressVariable.material.uniforms.gasConstant = { value: this.gasConstant };
+    this.denstPressVariable.material.uniforms.restDensity = { value: this.restingDensity };
+    this.denstPressVariable.material.uniforms.boundDamping = { value: this.boundDamping };
+    this.denstPressVariable.material.uniforms.pi = { value: Math.PI };
+    this.denstPressVariable.material.uniforms.boxSize = { value: this.boxSize };
+    
+    this.denstPressVariable.material.uniforms.radius = { value: this.particleRadius };
+    this.denstPressVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
+    this.denstPressVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
+    this.denstPressVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
+    this.denstPressVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
+    
+    this.denstPressVariable.material.uniforms.timestep = { value: this.timestep };
     //#endregion
 
     // ---------------
@@ -178,6 +216,6 @@ export class SPH{
       data[index + 2] = tempPosition.z;
       data[index + 3] = 1.0; // Alpha (1.0으로 설정)
     }
-    console.log(this.initialPosition.image.data)
+    // console.log(this.initialPosition.image.data)
   }
 }
