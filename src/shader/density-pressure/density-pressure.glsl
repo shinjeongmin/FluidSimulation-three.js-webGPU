@@ -22,24 +22,24 @@ uniform float timestep;
 
 float StdKernel(float distanceSquared) {
   float x = 1.0f - distanceSquared / radius2;
-  return 315.0 / (64.0 * pi * radius3) * pow(x, 3.0);
+  return 315.0 / (64.0 * pi * radius3) * x * x * x;
 }
 
 void main() {
-    int id = int(gl_FragCoord.x);
+    float id = gl_FragCoord.x;
 
-    if (id >= particleLength) {
+    if (int(id) >= particleLength) {
         gl_FragColor = vec4(0.0);  // 범위 밖일 경우 아무런 작업도 하지 않음
         return;
     }
 
     // 파티클 위치 읽기
-    vec3 origin = texture2D(positionTexture, vec2(float(id) / float(particleLength))).xyz;
+    vec3 origin = texture2D(positionTexture, vec2(id / float(particleLength))).xyz;
     float sum = 0.0;
 
-    for (int i = 0; i < particleLength; i++) {
+    for (float i = 0.5; int(i) < particleLength; i++) {
 
-        vec3 otherPos = texture2D(positionTexture, vec2(float(i) / float(particleLength))).xyz;
+        vec3 otherPos = texture2D(positionTexture, vec2(i / float(particleLength))).xyz;
         vec3 diff = origin - otherPos;
         float distanceSquared = dot(diff, diff);
         

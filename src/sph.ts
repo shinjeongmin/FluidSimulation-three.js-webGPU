@@ -9,12 +9,11 @@ import computeDensityPressure from './shader/density-pressure/density-pressure.g
 export class SPH{
   //#region SPH variable - general
   public showSpheres: boolean = true;
-  public numToSpawn: THREE.Vector3 = new THREE.Vector3(10, 10, 10);
+  public numToSpawn: THREE.Vector3 = new THREE.Vector3(20,20,20); // computation limit : 16300
   public totalParticles: number = this.numToSpawn.x * this.numToSpawn.y * this.numToSpawn.z;
   public spawnCenter: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
   public particleRadius: number = 0.1;
-
-  public boxSize: THREE.Vector3 = new THREE.Vector3(5,5,5);
+  public boxSize: THREE.Vector3 = new THREE.Vector3(15,15,15);
   //#endregion
 
   //#region SPH variable - particle rendering
@@ -51,9 +50,9 @@ export class SPH{
   //#region SPH variable - fluid constants
   public boundDamping: number = -0.3;
   public viscosity: number = -0.003;
-  public particleMass: number = 1;
-  public gasConstant: number = 2;
-  public restingDensity: number = 1;
+  public particleMass: number = 1.0;
+  public gasConstant: number = 2.0;
+  public restingDensity: number = 1.0;
   public timestep: number = 0.01;
   //#endregion
 
@@ -78,15 +77,15 @@ export class SPH{
     this.initParticlePosition();
     this.initialDenstPress = this.gpuCompute.createTexture();
 
+    this.denstPressVariable = this.gpuCompute.addVariable('densityPressureTexture', computeDensityPressure, this.initialDenstPress);
     this.positionVariable = this.gpuCompute.addVariable('positionTexture', computeIntegratePosition, this.initialPosition);
     this.velocityVariable = this.gpuCompute.addVariable('velocityTexture', computeIntegrateVelocity, this.initialVelocity);
     this.forceVariable = this.gpuCompute.addVariable('forceTexture', computeForce, this.initialForce);
-    this.denstPressVariable = this.gpuCompute.addVariable('densityPressureTexture', computeDensityPressure, this.initialDenstPress);
-    
+
+    this.gpuCompute.setVariableDependencies(this.denstPressVariable, [this.denstPressVariable, this.positionVariable]);
     this.gpuCompute.setVariableDependencies(this.positionVariable, [this.positionVariable, this.velocityVariable]);
     this.gpuCompute.setVariableDependencies(this.velocityVariable, [this.positionVariable, this.velocityVariable, this.forceVariable]);
     this.gpuCompute.setVariableDependencies(this.forceVariable, [this.positionVariable, this.velocityVariable, this.forceVariable, this.denstPressVariable]);
-    this.gpuCompute.setVariableDependencies(this.denstPressVariable, [this.positionVariable]);
 
     //#region position uniform
     this.positionVariable.material.uniforms.particleLength = { value: this.totalParticles };
@@ -163,32 +162,6 @@ export class SPH{
     
     this.denstPressVariable.material.uniforms.timestep = { value: this.timestep };
     //#endregion
-
-    // ---------------
-
-    // this.textureData = this.gpuCompute.createTexture();
-    // this.textureData.image.data;
-
-    // this.textureVariable = this.gpuCompute.addVariable('textureData', computeIntegratePosition, this.textureData);
-
-    // this.gpuCompute.setVariableDependencies(this.textureVariable, [this.textureVariable]);
-
-    // this.textureVariable.material.uniforms.particleLength = { value: this.totalParticles };
-    // this.textureVariable.material.uniforms.particleMass = { value: 1.0 };
-    // this.textureVariable.material.uniforms.viscosity = { value: 0.01 };
-    // this.textureVariable.material.uniforms.gasConstant = { value: 1.4 };
-    // this.textureVariable.material.uniforms.restDensity = { value: 1000.0 };
-    // this.textureVariable.material.uniforms.boundDamping = { value: 0.9 };
-    // this.textureVariable.material.uniforms.pi = { value: Math.PI };
-    // this.textureVariable.material.uniforms.boxSize = { value: new THREE.Vector3(10, 10, 10) };
-
-    // this.textureVariable.material.uniforms.radius = { value: this.particleRadius };
-    // this.textureVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
-    // this.textureVariable.material.uniforms.radius3 = { value: Math.pow(this.particleRadius, 3) };
-    // this.textureVariable.material.uniforms.radius4 = { value: Math.pow(this.particleRadius, 4) };
-    // this.textureVariable.material.uniforms.radius5 = { value: Math.pow(this.particleRadius, 5) };
-    
-    // this.textureVariable.material.uniforms.timestep = { value:  0.016 };
     
     this.gpuCompute.init();
   }

@@ -21,16 +21,16 @@ uniform float timestep;
 // uniform sampler2D densityPressureTexture;
 
 void main() {
-    int id = int(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
+    float id = float(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
 
-    if (id >= particleLength) {
+    if (id >= float(particleLength)) {
         gl_FragColor = vec4(0.0);  // 범위 밖일 경우 아무런 작업도 하지 않음
         // id = vec4(0.0);
         return;
     }
 
-    vec3 position = texture2D(positionTexture, vec2(gl_FragCoord.x / float(particleLength))).xyz;
-    vec3 velocity = texture2D(velocityTexture, vec2(gl_FragCoord.x / float(particleLength))).xyz;
+    vec3 position = texture2D(positionTexture, vec2(id / float(particleLength))).xyz;
+    vec3 velocity = texture2D(velocityTexture, vec2(id / float(particleLength))).xyz;
 
     vec3 newPosition = position + velocity * timestep;
 

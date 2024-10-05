@@ -15,7 +15,7 @@ import { getTextureData, readTextureData } from './render/renderTexture'
 const CANVAS_ID = 'scene'
 const { scene, canvas, renderer } = initScene(CANVAS_ID)
 const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 1000)
-camera.position.set(0,0,13)
+camera.position.set(-10,10,25)
 const { cameraControls } = setCameraControl(camera, canvas)
 addLights(scene)
 
@@ -26,7 +26,7 @@ function initialize(){
   SPH.particleMesh.geometry = new THREE.SphereGeometry(SPH.particleRadius);
   SPH.particleMesh.material = new THREE.MeshPhongMaterial({color: 'blue'});
   SPH.particleMesh = new THREE.InstancedMesh(SPH.particleMesh.geometry, SPH.particleMesh.material, 
-    1000);
+    SPH.totalParticles);
   scene.add(SPH.particleMesh)
 
   spawnParticlesInBox(SPH.particleMesh as THREE.InstancedMesh, SPH.numToSpawn,
@@ -112,7 +112,7 @@ function animate() {
   //#region GPU computation
   SPH.gpuCompute.compute();
   if(isSpacePressed) 
-    readTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.forceVariable));
+    readTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.denstPressVariable));
   
   updateParticlePosition(SPH.particleMesh as THREE.InstancedMesh, 
     getTextureData(renderer, SPH.gpuCompute.getCurrentRenderTarget(SPH.positionVariable)))

@@ -37,46 +37,75 @@ vec3 SpikyKernelGradient(float distance, vec3 direction) {
     return SpikyKernelFirstDerivative(distance) * direction;
 }
 
-void main() {
-    int id = int(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
+float StdKernel(float distanceSquared) {
+  float x = 1.0f - distanceSquared / radius2;
+  return 315.0 / (64.0 * pi * radius3) * x * x * x;
+}
 
-    if (id >= particleLength) {
+void main() {
+    float id = float(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
+
+    if (id >= float(particleLength)) {
         gl_FragColor = vec4(0.0);  // 범위 밖일 경우 아무런 작업도 하지 않음
         return;
     }
 
+    // 파티클 위치 읽기
+    vec3 origin = texture2D(positionTexture, vec2(id / float(particleLength))).xyz;
+    float sum = 0.0;
 
-    vec3 origin = texture2D(positionTexture, vec2(float(id) / float(particleLength))).xyz;
-    float density = texture2D(densityPressureTexture, vec2(float(id) / float(particleLength))).x;
-    float pressure = texture2D(densityPressureTexture, vec2(float(id) / float(particleLength))).y;
+    for (float i = 0.5; int(i) < particleLength; i++) {
+
+        vec3 otherPos = texture2D(positionTexture, vec2(i / float(particleLength))).xyz;
+        vec3 diff = origin - otherPos;
+        float distanceSquared = dot(diff, diff);
+        
+        if (radius2 * 0.004 > distanceSquared * 0.004) {
+            sum += StdKernel(distanceSquared * 0.004);
+        }
+    }
+
+    // 파티클 밀도 및 압력 계산
+    float density = sum * particleMass + 0.000001;
+    float pressure = gasConstant * (density - restDensity);
+
+    // ---------------
+
+    // float density = texture2D(densityPressureTexture, vec2(id / float(particleLength))).x;
+    // float pressure = texture2D(densityPressureTexture, vec2(id / float(particleLength))).y;
     float density2 = density * density;
     float mass2 = particleMass * particleMass;
     vec3 resultPressure = vec3(0.0);
     vec3 visc = vec3(0.0);
 
-    if(density == 0.0) {
-        density = 1.0;
-    }
+    // if (density != density || pressure != pressure){
+    //     gl_FragColor = vec4(0.0);
+    //     return;
+    // }
 
-    for (int i = 0; i < particleLength; i++) {
-        vec3 otherPosition = texture2D(positionTexture, vec2(float(i) / float(particleLength))).xyz;
+    for (float i = 0.5; int(i) < particleLength; i++) {
+        vec3 otherPosition = texture2D(positionTexture, vec2(i / float(particleLength))).xyz;
         
         // 자기 자신과 비교하지 않기
-        if (origin == otherPosition) continue;
+        if (id == i) continue;
 
-        float dist = distance(origin, otherPosition);
+        float dist = distance(otherPosition, origin);
         if (dist < radius * 2.0) {
             // 압력 계산
             vec3 pressureGradientDirection = normalize(origin - otherPosition);
 
             vec3 pressureContribution = mass2 * SpikyKernelGradient(dist, pressureGradientDirection);
-            float otherDensity = texture2D(densityPressureTexture, vec2(float(i) / float(particleLength))).x;
-            float otherPressure = texture2D(densityPressureTexture, vec2(float(i) / float(particleLength))).y;
+            // float otherDensity = texture2D(densityPressureTexture, vec2(i / float(particleLength))).x;
+            // float otherPressure = texture2D(densityPressureTexture, vec2(i / float(particleLength))).y;
+
+            // makeshift method
+            float otherDensity = density;
+            float otherPressure = pressure;
             pressureContribution *= (pressure / density2) + otherPressure / (otherDensity * otherDensity);
 
             // 점성 계산
-            vec3 velocity = texture2D(velocityTexture, vec2(float(id) / float(particleLength))).xyz;
-            vec3 otherVelocity = texture2D(velocityTexture, vec2(float(i) / float(particleLength))).xyz;
+            vec3 velocity = texture2D(velocityTexture, vec2(id / float(particleLength))).xyz;
+            vec3 otherVelocity = texture2D(velocityTexture, vec2(i / float(particleLength))).xyz;
             vec3 viscosityContribution = viscosity * mass2 * (otherVelocity - velocity) / otherDensity;
             viscosityContribution *= SpikyKernelSecondDerivative(dist);
             

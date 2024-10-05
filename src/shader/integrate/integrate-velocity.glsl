@@ -13,9 +13,9 @@ uniform int particleLength;
 // uniform sampler2D densityPressureTexture;
 
 void main() {
-    int id = int(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
+    float id = float(gl_FragCoord.x);  // 각 픽셀은 파티클 ID와 매핑
 
-    if (id >= particleLength) {
+    if (id >= float(particleLength)) {
         gl_FragColor = vec4(0.0);  // 범위 밖일 경우 아무런 작업도 하지 않음
         return;
     }
