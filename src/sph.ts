@@ -12,6 +12,8 @@ export class SPH{
   public totalParticles: number = this.numToSpawn.x * this.numToSpawn.y * this.numToSpawn.z;
   public spawnCenter: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
   public particleRadius: number = 0.1;
+
+  public boxSize: THREE.Vector3 = new THREE.Vector3(5,5,5);
   //#endregion
 
   //#region SPH variable - particle rendering
@@ -89,7 +91,7 @@ export class SPH{
     // this.positionVariable.material.uniforms.restDensity = { value: 1000.0 };
     this.positionVariable.material.uniforms.boundDamping = { value: this.boundDamping };
     // this.positionVariable.material.uniforms.pi = { value: Math.PI };
-    this.positionVariable.material.uniforms.boxSize = { value: new THREE.Vector3(5, 5, 5) };
+    this.positionVariable.material.uniforms.boxSize = { value: this.boxSize };
 
     this.positionVariable.material.uniforms.radius = { value: this.particleRadius };
     // this.positionVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };
@@ -108,7 +110,7 @@ export class SPH{
     // this.velocityVariable.material.uniforms.restDensity = { value: 1000.0 };
     this.velocityVariable.material.uniforms.boundDamping = { value: this.boundDamping };
     // this.velocityVariable.material.uniforms.pi = { value: Math.PI };
-    this.velocityVariable.material.uniforms.boxSize = { value: new THREE.Vector3(5,5,5) };
+    this.velocityVariable.material.uniforms.boxSize = { value: this.boxSize };
     
     this.velocityVariable.material.uniforms.radius = { value: this.particleRadius };
     // this.velocityVariable.material.uniforms.radius2 = { value: Math.pow(this.particleRadius, 2) };

@@ -19,7 +19,7 @@ const edges = [
   0, 4,  1, 5,  2, 6,  3, 7   // 옆면
 ];
 
-export function drawBoundary(scene: THREE.Scene, position: THREE.Vector3, boxSize: number){
+export function drawBoundary(scene: THREE.Scene, position: THREE.Vector3, boxSize: THREE.Vector3){
   const lineGeometry = new THREE.BufferGeometry()
   lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3))
   lineGeometry.setIndex(edges);
@@ -27,7 +27,7 @@ export function drawBoundary(scene: THREE.Scene, position: THREE.Vector3, boxSiz
   const wireCube = new THREE.LineSegments(lineGeometry, 
     new THREE.MeshBasicMaterial({color: 'purple'}));
   
-  wireCube.position.set(position.x, position.y, position.z);
-  wireCube.scale.set(boxSize, boxSize, boxSize);
+  wireCube.position.set(position.x, position.y, position.z + boxSize.z);
+  wireCube.scale.set(boxSize.x, boxSize.y, boxSize.z);
   scene.add(wireCube);
 }

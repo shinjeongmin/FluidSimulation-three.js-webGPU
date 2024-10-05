@@ -143,6 +143,6 @@ initialize();
 SPH.setShader();
 debugGui.init();
 debugGui.setShowSphere('showSpheres', SPH.showSpheres, SPH);
-drawDebugLine.drawBoundary(scene, new THREE.Vector3(0,0,0), 1);
+drawDebugLine.drawBoundary(scene, SPH.spawnCenter, SPH.boxSize);
 animate();
 //#endregion
