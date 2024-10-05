@@ -27,7 +27,7 @@ export function drawBoundary(scene: THREE.Scene, position: THREE.Vector3, boxSiz
   const wireCube = new THREE.LineSegments(lineGeometry, 
     new THREE.MeshBasicMaterial({color: 'purple'}));
   
-  wireCube.position.set(position.x, position.y, position.z + boxSize.z);
-  wireCube.scale.set(boxSize.x, boxSize.y, boxSize.z);
+  wireCube.position.set(position.x, position.y, position.z);
+  wireCube.scale.set(boxSize.x/2, boxSize.y/2, boxSize.z/2);
   scene.add(wireCube);
 }
